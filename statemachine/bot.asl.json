@@ -1,0 +1,21 @@
+{
+  "Comment": "A state machine for this bot.",
+  "StartAt": "ProcessEvent",
+  "States": {
+    "ProcessEvent": {
+      "Type": "Choice",
+      "Choices": [
+        {
+          "Variable": "$.action",
+          "StringEquals": "HANDLE_WEBHOOK_EVENT",
+          "Next": "WebhookEventHandler"
+        }
+      ]
+    },
+    "WebhookEventHandler": {
+      "Type": "Task",
+      "Resource": "${WebhookEventHandlerFunctionArn}",
+      "End": true
+    }
+  }
+}

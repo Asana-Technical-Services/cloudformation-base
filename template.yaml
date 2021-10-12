@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: AWS::Serverless-2016-10-31
+Description: Sample SAM Template for ben-training-project
+
+Globals:
+  Function:
+    Timeout: 180
+    Runtime: nodejs14.x
+
+Resources:
+  BotFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: functions/bot
+      Handler: build/app.lambdaHandler
+      Events:
+        DemoEvent:
+          Type: Api
+          Properties:
+            Path: /bot
+            Method: post
+      Environment:
+        Variables:
+          STATE_MACHINE_ARN: !Ref BotStateMachine
+          API_SECRETS: !Ref APISecrets
+          REF_TABLE: !GetAtt [ReferenceTable, Name]
+      Policies:
+        Statement:
+          - Effect: "Allow" # Policy to allow read/write for Transaction Table
+            Action:
+              - "dynamodb:*"
+            Resource: !GetAtt [ReferenceTable, Arn]
+          - Effect: "Allow" # Policy to allow read BotSecret
+            Action:
+              - "secretsmanager:read"
+            Resource: !Ref APISecrets
+          - Effect: "Allow" # Policy to allow executing BotStateMachine
+            Action:
+              - "states:*"
+            Resource: !GetAtt [BotStateMachine, Arn]
+
+  WebhookEventHandlerFunction:
+    Type: AWS::Serverless::Function # More info about Function Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-function.html
+    Properties:
+      CodeUri: functions/webhookEventHandler
+      Handler: build/app.lambdaHandler
+      Environment:
+        Variables:
+          API_SECRETS: !Ref APISecrets
+      Policies:
+        Statement:
+          - Effect: "Allow" # Policy to allow read/write BotSecret
+            Action:
+              - "secretsmanager:read"
+            Resource: !Ref APISecrets
+
+  APISecrets:
+    Type: "AWS::SecretsManager::Secret" # More info about Secrets Manager Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-specification-generated-resources-statemachine.html
+    Properties:
+      SecretString: '{"asanaApiKey":""}' #Fill this in on AWS
+
+  ReferenceTable:
+    Type: AWS::Serverless::SimpleTable # More info about SimpleTable Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-simpletable.html
+    Properties:
+      PrimaryKey:
+        Name: id
+        Type: String
+      ProvisionedThroughput:
+        ReadCapacityUnits: 3
+        WriteCapacityUnits: 3
+      TableName: "WebhookSecret"
+
+  BotStateMachine:
+    Type: AWS::Serverless::StateMachine # More info about State Machine Resource: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/sam-resource-statemachine.html
+    Properties:
+      DefinitionUri: statemachine/bot.asl.json
+      DefinitionSubstitutions:
+        WebhookEventHandlerFunctionArn: !GetAtt WebhookEventHandlerFunction.Arn
+      Policies: # Find out more about SAM policy templates: https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/serverless-policy-templates.html
+        - LambdaInvokePolicy:
+            FunctionName: !Ref WebhookEventHandlerFunction

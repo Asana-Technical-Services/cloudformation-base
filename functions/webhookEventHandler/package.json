@@ -1,0 +1,26 @@
+{
+  "name": "bot",
+  "version": "1.0.0",
+  "description": "Bot",
+  "main": "app.js",
+  "repository": "TODO",
+  "author": "SAM CLI",
+  "license": "MIT",
+  "dependencies": {
+    "@types/aws-lambda": "^8.10.81",
+    "aws-lambda": "^1.0.6",
+    "axios": "^0.21.4"
+  },
+  "scripts": {
+    "test": "mocha tests/unit/"
+  },
+  "devDependencies": {
+    "@aws-sdk/types": "^3.22.0",
+    "@types/node": "^16.10.4",
+    "aws-sdk": "^2.655.0",
+    "chai": "^4.3.4",
+    "chai-as-promised": "^7.1.1",
+    "mocha": "^8.4.0",
+    "typescript": "^3.8.3"
+  }
+}
