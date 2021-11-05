@@ -23,7 +23,7 @@ Resources:
         Variables:
           STATE_MACHINE_ARN: !Ref BotStateMachine
           API_SECRETS: !Ref APISecrets
-          REF_TABLE: !GetAtt [ReferenceTable, Name]
+          REF_TABLE: !Ref ReferenceTable
       Policies:
         Statement:
           - Effect: "Allow" # Policy to allow read/write for Transaction Table
@@ -32,7 +32,7 @@ Resources:
             Resource: !GetAtt [ReferenceTable, Arn]
           - Effect: "Allow" # Policy to allow read BotSecret
             Action:
-              - "secretsmanager:read"
+              - "secretsmanager:GetSecretValue"
             Resource: !Ref APISecrets
           - Effect: "Allow" # Policy to allow executing BotStateMachine
             Action:
@@ -51,7 +51,7 @@ Resources:
         Statement:
           - Effect: "Allow" # Policy to allow read/write BotSecret
             Action:
-              - "secretsmanager:read"
+              - "secretsmanager:GetSecretValue"
             Resource: !Ref APISecrets
 
   APISecrets:

@@ -17,7 +17,7 @@ exports.lambdaHandler = async (input: {
 
   if (!body?.data?.events) return;
 
-  for (let asanaEvent in body?.data?.events) {
+  for (let asanaEvent of body?.data?.events) {
     // do something async to handle the events!
 
     allPromises.push(
